@@ -1,5 +1,4 @@
 const chalk = require( 'chalk' );
-const client = require( '..' );
 const axios = require( 'axios' );
 const cheerio = require( 'cheerio' );
 const ProductDB = require( '../../models/Products.js' );

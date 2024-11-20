@@ -1,3 +1,5 @@
+require( 'dotenv' ).config();
+const ENV = process.env;
 const { ApplicationCommandType, InteractionContextType } = require( 'discord.js' );
 const chalk = require( 'chalk' );
 const errHandler = require( '../../functions/errorHandler.js' );
@@ -17,10 +19,13 @@ module.exports = {
     try {
       await interaction.deferReply( { ephemeral: true } );// ephemeral: interaction.inGuild()
       const { channel, guild, options, user: author } = interaction;
-      const { content } = await userPerms( author, guild );
-      if ( content ) { return interaction.editReply( { content: content } ); }
+      const { isBotMod, isGlobalBlacklisted, content } = await userPerms( author, guild );
+      if ( isGlobalBlacklisted ) { return interaction.editReply( { content: content } ); }
+      if ( !isBotMod ) { return interaction.editReply( { content: 'Comming **SOON**:tm:' } ); }
+      const aboutBot = {
 
-      return interaction.editReply( { content: 'Comming **SOON**:tm:' } );
+      };
+
     }
     catch ( errObject ) { console.error( 'Uncaught error in %s:\n\t%s', strScript, errObject.stack ); }
   }
