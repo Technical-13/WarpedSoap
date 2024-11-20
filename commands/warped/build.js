@@ -30,23 +30,25 @@ const getPageData = async ( doPage ) => {
   await getPages( doPage );
   new Promise( async ( resolve, reject ) => {
     try {
-      let dataset = document.getElementsByTagName( 'form' )[ 0 ].dataset;
-      let firstImg = document.getElementsByClassName( 'flex-control-thumbs' )[ 0 ].firstChild.firstChild.src.split( '?' )[ 0 ];
+      axios( thisPage ).then( response => {
+      const $ = cheerio.load( response.data );
+      let dataset = $( 'form' )[ 0 ].dataset;
+      let firstImg = $( 'flex-control-thumbs' )[ 0 ].firstChild.firstChild.src.split( '?' )[ 0 ];
       let hasVariations = ( dataset.product_variations ? true : false );
-      let prodBlurb = document.getElementsByClassName( 'wp-block-post-excerpt__excerpt' )[ 0 ].textContent.trim();
-      let prodCats = Array.from( document.getElementsByClassName( 'taxonomy-product_cat' )[ 0 ].children ).filter( c => c.tagName === 'A' ).map( a => a.textContent );
+      let prodBlurb = $( 'wp-block-post-excerpt__excerpt' )[ 0 ].textContent.trim();
+      let prodCats = Array.from( $( 'taxonomy-product_cat' )[ 0 ].children ).filter( c => c.tagName === 'A' ).map( a => a.textContent );
       let prodIsSub = ( prodCats.indexOf( 'Subscriptions' ) != -1 ? true : false );
-      let prodDesc = Array.from( Array.from( document.getElementById( 'tab-description' ).querySelectorAll( 'p' ) ).map( p => p.textContent.trim() ) ).join( '\n' );
+      let prodDesc = Array.from( Array.from( $( 'tab-description' ).querySelectorAll( 'p' ) ).map( p => p.textContent.trim() ) ).join( '\n' );
       let prodId = dataset.product_id;
-      let prodInStock = ( document.getElementsByClassName( 'in-stock' ).length ? true : ( prodIsSub || false ) );
-      let prodPrice = parseFloat( document.getElementsByTagName( 'bdi' )[ 0 ].childNodes[ 1 ].textContent );
-      let prodName = document.querySelector( '[aria-label="Breadcrumb"]' ).lastChild.textContent.split( '/' ).pop().trim();
-      let rating = document.querySelector( 'strong.rating' )?.textContent;
-      let reviews =  document.querySelector( 'strong.rating' )?.nextElementSibling.textContent;
+      let prodInStock = ( $( 'in-stock' ).length ? true : ( prodIsSub || false ) );
+      let prodPrice = parseFloat( $( 'bdi' )[ 0 ].childNodes[ 1 ].textContent );
+      let prodName = $( '[aria-label="Breadcrumb"]' ).lastChild.textContent.split( '/' ).pop().trim();
+      let rating = $( 'strong.rating' )?.textContent;
+      let reviews =  $( 'strong.rating' )?.nextElementSibling.textContent;
       let prodVars = [];
       if ( hasVariations && prodIsSub ) { prodVars = JSON.parse( dataset.product_variations ).map( v => v.attributes[ 'attribute_how-often' ] ); }
       else if ( hasVariations ) { prodVars = JSON.parse( dataset.product_variations ).map( v => v.attributes.attribute_scent ); }
-      let relatedBox = document.querySelector( 'div[data-block-name="woocommerce/related-products"]' ).firstElementChild;
+      let relatedBox = $( 'div[data-block-name="woocommerce/related-products"]' ).firstElementChild;
       let relatedItems = [];
       if ( relatedBox ) {
         relatedItems = Array.from( relatedBox.children[ 1 ].children ).map( ( rp, i ) => {
