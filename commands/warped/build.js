@@ -84,12 +84,12 @@ const getPageData = async ( doPage ) => {
     catch ( errGetPage ) { reject( errGetPage ); }
   } )
   .then( gotPage => {
-    allPages.waiting = allPages.waiting.splice( location.href, 1 );
-    allPages.processed.push( location.href );
+    allPages.waiting = allPages.waiting.splice( doPage, 1 );
+    allPages.processed.push( doPage );
     console.log( 'gotPage: %o', gotPage );
     //ProductDB.findOneAndUpdate( { name: gotPage.name }, gotPage, { upsert: true } )//Add entry to database
   } )
-  .catch( errPage => { console.error( 'Failed to get page %s: %o', location.href, errPage ); } );
+  .catch( errPage => { console.error( 'Failed to get page %s: %o', doPage, errPage ); } );
 };
 
 module.exports = {
