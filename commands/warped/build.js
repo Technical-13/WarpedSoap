@@ -22,7 +22,7 @@ const getPages = ( thisPage ) => {
       case 404:
         console.error( 'page %s not found!', thisPage );
       default:
-        console.error( '%s error attempting to get page for - %s - :\n%o', errGetPage.status, thisPage, errGetPage.stack );
+        console.error( '%s error attempting to get page for - %s - :\n%s', errGetPage.status, thisPage, errGetPage.stack );
     }
   } );
 }
@@ -91,7 +91,7 @@ const getPageData = async ( doPage ) => {
     console.log( 'gotPage: %o', gotPage );
     //ProductDB.findOneAndUpdate( { name: gotPage.name }, gotPage, { upsert: true } )//Add entry to database
   } )
-  .catch( errPage => { console.error( 'Failed to get page %s: %o', doPage, errPage ); } );
+  .catch( errPage => { console.error( 'Failed to get page %s: %s', doPage, errPage.stack ); } );
 };
 
 module.exports = {
