@@ -11,10 +11,11 @@ const basePageRegExp = new RegExp( /https?:\/\/warpedsoap.com\//, 'i' );
 const allPages = { waiting: [ startPage ], processed: [] };
 const getPages = ( thisPage ) => {
   axios( thisPage ).then( response => {
-    const $ = cheerio.load( response.data );
+    const $ = cheerio.load( response.data );/* TRON */console.log( 'getPages response.data: %o', response.data );/* TROFF */
     let newPages = Array.from( $( 'a' ) ).map( l => l.href.split( '#' )[ 0 ] );
     newPages = newPages.filter( p => p != thisPage );
     newPages = newPages.filter( ( val, i, arr ) => i == arr.indexOf( val ) ).filter( l => basePageRegExp.test( l ) ).sort();
+    /* TRON */console.log( 'Adding newPages: %o', newPages );/* TROFF */
     allPages.waiting = [].concat( allPages.waiting, newPages );
   } )
   .catch( errGetPage => {
@@ -29,7 +30,7 @@ const getPages = ( thisPage ) => {
 const getPageData = async ( doPage ) => {
   await getPages( doPage );
   axios( thisPage ).then( response => {
-    const $ = cheerio.load( response.data );
+    const $ = cheerio.load( response.data );/* TRON */console.log( 'getPageData response.data: %o', response.data );/* TROFF */
     let dataset = $( 'form' )[ 0 ].dataset;
     let firstImg = $( 'flex-control-thumbs' )[ 0 ].firstChild.firstChild.src.split( '?' )[ 0 ];
     let hasVariations = ( dataset.product_variations ? true : false );
@@ -84,7 +85,7 @@ const getPageData = async ( doPage ) => {
   .then( gotPage => {
     allPages.waiting = allPages.waiting.splice( doPage, 1 );
     allPages.processed.push( doPage );
-    console.log( 'gotPage: %o', gotPage );
+    /* TRON */console.log( 'gotPage: %o', gotPage );/* TROFF */
     //ProductDB.findOneAndUpdate( { name: gotPage.name }, gotPage, { upsert: true } )//Add entry to database
   } )
   .catch( errGetPage => {
@@ -105,6 +106,7 @@ module.exports = {
   ownerOnly: true,
   modOnly: false,
 	run: async ( client, message, args ) => {
+    /* TRON */console.log( 'Getting startPage: %o', startPage );/* TROFF */
     await getPageData( startPage );
   }
 };
