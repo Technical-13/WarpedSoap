@@ -19,13 +19,12 @@ module.exports = {
   cooldown: 1000,
   run: async ( client, interaction ) => {
     await interaction.deferReply( { ephemeral: true } );
+    const { guild, options, user: author } = interaction;
+    const { botOwner, isBotOwner, isBotMod } = await userPerms( author, guild );
     const cmdType = options.getString( 'type' ).toLowerCase() ?? 'slash';
     const commandName = options.getString( 'command', true ).toLowerCase();
 		try {
-      const { guild, options, user: author } = interaction;
-      const { botOwner, isBotOwner, isBotMod } = await userPerms( author, guild );
       var command, newCommand;
-
       if ( isBotMod && !isBotOwner ) { return interaction.editReply( 'This is currently an **owner only** command.  Please talk to <@' + botOwner.id + '> if you need assistance.' ); }
       else if ( !isBotOwner ) { return interaction.editReply( 'This is an **owner only** command.' ); }
       else if ( cmdType === 'prefix' ) {
