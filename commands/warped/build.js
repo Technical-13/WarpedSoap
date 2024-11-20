@@ -27,8 +27,7 @@ const getPages = ( thisPage ) => {
   } );
 }
 const getPageData = async ( doPage ) => {
-  window.location.href = doPage;
-  await getPages( location.href );
+  await getPages( doPage );
   new Promise( async ( resolve, reject ) => {
     try {
       let dataset = document.getElementsByTagName( 'form' )[ 0 ].dataset;
