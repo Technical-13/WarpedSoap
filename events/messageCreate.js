@@ -23,8 +23,11 @@ client.on( 'messageCreate', async ( message ) => {
     const { applicationId, authorId, webhookId } = message.toJSON();
     if ( !applicationId && webhookId === authorId ) return;//It's a webhook
     const { author, channel, content, guild, mentions } = message;
+    const members = guild.members.cache;
     if ( channel.type !== 0 ) return;//Not a text channel within a guild
     if ( author.bot ) return;//It's a bot application
+    const { clientId, botOwner, prefix, isBotOwner, isBotMod, isGlobalWhitelisted, isBlacklisted, isGuildBlacklisted } = await userPerms( author, guild );
+    const bot = client.user;
 
     const hasPrefix = ( content.startsWith( prefix ) || content.startsWith( '§' ) );
     const meMentionPrefix = '<@' + clientId + '>';
@@ -45,7 +48,7 @@ client.on( 'messageCreate', async ( message ) => {
       if ( !command ) command = client.commands.get( client.aliases.get( cmd ) );
 
       if ( isBlacklisted && !isGlobalWhitelisted ) {
-        return message.reply( { content: 'You\'ve been blacklisted from using my commands' + ( isGuildBlacklisted ? ' in this server.' : '.' ) } );
+        return message.reply( { content: 'You\'ve been blacklisted from using my commands' + ( isGuildBlacklisted ? ' in the **`' + guild.name + '`** server.' : '.' ) } );
       }
       else if ( command ) {
         const isOwnerOnly = command.ownerOnly;
