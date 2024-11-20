@@ -100,7 +100,7 @@ module.exports = ( client ) => {
             table.addRow( buildTable[ cmdKey ] );
           } );
           statusPut += chalk.red( 'ERROR!' );
-          console.error( 'ERROR:\n%o', errPutREST );
+          console.error( 'ERROR in %s:\n%s', strScript, errPutREST.stack );
         } );
         }
         statusPut += '\n\tLive Commands: ';
@@ -120,7 +120,7 @@ module.exports = ( client ) => {
             table.addRow( buildTable[ cmdKey ] );
           } );
           statusPut += chalk.red( 'ERROR!' );
-          console.error( 'ERROR:\n%o', errPutREST );
+          console.error( 'ERROR in %s:\n%s', strScript, errPutREST.stack );
         } );
       } else {
         statusPut += chalk.yellow( 'Unchanged!' ) + ' for ' + whoFor;
