@@ -13,7 +13,6 @@ const getPages = ( thisPage ) => {
   axios( thisPage ).then( response => {
     const $ = cheerio.load( response.data );
 /* TRON */console.log( 'getPages response.data: %s', response.data );/* TROFF */
-/* TRON */console.log( 'All anchor tags: %o', $( 'a' ) );/* TROFF */
 /* TRON */console.log( 'Array.from: %o', Array.from( $( 'a' ) ) );/* TROFF */
     let newPages = Array.from( $( 'a' ) ).map( l => l.href.split( '#' )[ 0 ] );
     newPages = newPages.filter( p => p != thisPage );
