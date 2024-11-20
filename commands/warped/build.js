@@ -29,7 +29,7 @@ const getPages = ( thisPage ) => {
 }
 const getPageData = async ( doPage ) => {
   await getPages( doPage );
-  axios( thisPage ).then( response => {
+  axios( doPage ).then( response => {
     const $ = cheerio.load( response.data );/* TRON */console.log( 'getPageData response.data: %o', response.data );/* TROFF */
     let dataset = $( 'form' )[ 0 ].dataset;
     let firstImg = $( 'flex-control-thumbs' )[ 0 ].firstChild.firstChild.src.split( '?' )[ 0 ];
@@ -107,6 +107,6 @@ module.exports = {
   modOnly: false,
 	run: async ( client, message, args ) => {
     /* TRON */console.log( 'Getting startPage: %o', startPage );/* TROFF */
-    await getPageData( startPage );
+    await getPages( startPage );
   }
 };
