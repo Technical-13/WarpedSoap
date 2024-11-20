@@ -1,0 +1,21 @@
+{
+  "activities": [ { "type": "Custom", "name": "https://WarpedSoap.com" } ],
+  "botName": "Warped",
+  "botOwnerId": "440752068509040660",
+  "clientId": "1308082739555074068",
+  "devGuildId": "192775085420052489",
+  "host": "http://node4.lunes.host",
+  "issueRepo": "https://github.com/Technical-13/ShoeBot",
+  "logChans": {
+    "Default": "259391732066680833",
+    "Error": "259391732066680833",
+    "JoinPart": "259391732066680833"
+  },
+  "moderatorIds": [],
+  "port": 2287,
+  "staticCmds": [],
+	"prefix": "[]",
+  "verBotDB": 241118,
+  "verGuildDB": 241118,
+  "verUserDB": 241118
+}
