@@ -1,4 +1,4 @@
-const client = require( '..' );
+const client = require( '../..' );
 const chalk = require( 'chalk' );
 const axios = require( 'axios' );
 const cheerio = require( 'cheerio' );
