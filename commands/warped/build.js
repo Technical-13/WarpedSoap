@@ -11,11 +11,14 @@ const basePageRegExp = new RegExp( /https?:\/\/warpedsoap.com\//, 'i' );
 const allPages = { waiting: [ startPage ], processed: [] };
 const getPages = ( thisPage ) => {
   axios( thisPage ).then( response => {
-    const $ = cheerio.load( response.data );/* TRON */console.log( 'getPages response.data: %o', response.data );/* TROFF */
+    const $ = cheerio.load( response.data );
+/* TRON */console.log( 'getPages response.data: %s', response.data );/* TROFF */
+/* TRON */console.log( 'All anchor tags: %o', $( 'a' ) );/* TROFF */
+/* TRON */console.log( 'Array.from: %o', Array.from( $( 'a' ) ) );/* TROFF */
     let newPages = Array.from( $( 'a' ) ).map( l => l.href.split( '#' )[ 0 ] );
     newPages = newPages.filter( p => p != thisPage );
     newPages = newPages.filter( ( val, i, arr ) => i == arr.indexOf( val ) ).filter( l => basePageRegExp.test( l ) ).sort();
-    /* TRON */console.log( 'Adding newPages: %o', newPages );/* TROFF */
+/* TRON */console.log( 'Adding newPages: %o', newPages );/* TROFF */
     allPages.waiting = [].concat( allPages.waiting, newPages );
   } )
   .catch( errGetPage => {
@@ -106,7 +109,7 @@ module.exports = {
   ownerOnly: true,
   modOnly: false,
 	run: async ( client, message, args ) => {
-    /* TRON */console.log( 'Getting startPage: %o', startPage );/* TROFF */
+/* TRON */console.log( 'Getting startPage: %o', startPage );/* TROFF */
     await getPages( startPage );
   }
 };
