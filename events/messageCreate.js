@@ -20,14 +20,19 @@ const getDebugString = ( thing ) => {
 
 client.on( 'messageCreate', async ( message ) => {
   try {
+    const { author, channel, content, guild, mentions } = message;
+    const allowedBots = [];
+    const isAllowedBot = ( allowedBots.indexOf( author.id ) != -1 ? true : false );
+    if ( author.bot && !allowedBots ) return;//It's a bot that is not allowed
     const { applicationId, authorId, webhookId } = message.toJSON();
     if ( !applicationId && webhookId === authorId ) return;//It's a webhook
-    const { author, channel, content, guild, mentions } = message;
-    const members = guild.members.cache;
     if ( channel.type !== 0 ) return;//Not a text channel within a guild
-    if ( author.bot ) return;//It's a bot application
-    const { clientId, botOwner, prefix, isBotOwner, isBotMod, isGlobalWhitelisted, isBlacklisted, isGuildBlacklisted } = await userPerms( author, guild );
+    const { clientId, botOwner, isDevGuild, prefix, isBotOwner, isBotMod, isGlobalWhitelisted, isBlacklisted, isGuildBlacklisted, errors } = await userPerms( author, guild );
+    if ( errors.hasNoMember ) {
+      throw new Error( errors.noMember.console + '\n\tisBot: ' + ( author.bot ? 'true' : 'false' ) + '\n\tapplicationId: ' + applicationId + '\n\twebhookId: ' + webhookId );
+    }
     const bot = client.user;
+    const members = guild.members.cache;
 
     const hasPrefix = ( content.startsWith( prefix ) || content.startsWith( '§' ) );
     const meMentionPrefix = '<@' + clientId + '>';
@@ -70,7 +75,7 @@ client.on( 'messageCreate', async ( message ) => {
                 .setColor( 'Red' )
                 return message.reply( { embeds: [ userPerms ] } );
               }
-              if ( !objGuildMembers.get( bot.id ).permissions.has( PermissionsBitField.resolve( command.botPerms || [] ) ) ) {
+              if ( !members.get( bot.id ).permissions.has( PermissionsBitField.resolve( command.botPerms || [] ) ) ) {
                 const botPerms = new EmbedBuilder()
                 .setDescription( `🚫 ${author}, I don't have \`${command.botPerms}\` permissions to use this command!` )
                 .setColor( 'Red' )
@@ -91,7 +96,7 @@ client.on( 'messageCreate', async ( message ) => {
                 return message.reply( { embeds: [userPerms] } );
               }
 
-              if ( !objGuildMembers.get( bot.id ).permissions.has( PermissionsBitField.resolve( command.botPerms || [] ) ) ) {
+              if ( !members.get( bot.id ).permissions.has( PermissionsBitField.resolve( command.botPerms || [] ) ) ) {
                 const botPerms = new EmbedBuilder()
                 .setDescription( `🚫 ${author}, I don't have \`${command.botPerms}\` permissions to use this command!` )
                 .setColor( 'Red' )
