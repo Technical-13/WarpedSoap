@@ -7,6 +7,17 @@ const getGuildConfig = require( './getGuildDB.js' );
 const createNewUser = require( './createNewUser.js' );
 const addUserGuild = require( './addUserGuild.js' );
 const verUserDB = config.verUserDB;
+const getDebugString = ( thing ) => {
+  if ( Array.isArray( thing ) ) { return '{ object-Array: { length: ' + thing.length + ' } }'; }
+  else if ( Object.prototype.toString.call( thing ) === '[object Date]' ) { return '{ object-Date: { ISOstring: ' + thing.toISOString() + ', value: ' + thing.valueOf() + ' } }'; }
+  else if ( typeof( thing ) != 'object' ) { return thing; }
+  else {
+    let objType = ( thing ? 'object-' + thing.constructor.name : typeof( thing ) );
+    let objId = ( thing ? thing.id : 'no.id' );
+    let objName = ( thing ? ( thing.displayName || thing.globalName || thing.name ) : 'no.name' );
+    return '{ ' + objType + ': { id: ' + objId + ', name: ' + objName + ' } }';
+  }
+};
 const strScript = chalk.hex( '#FFA500' ).bold( './functions/getPerms.js' );
 
 module.exports = async ( user, guild, doBlacklist = true, debug = false ) => {
@@ -19,39 +30,59 @@ module.exports = async ( user, guild, doBlacklist = true, debug = false ) => {
     }
     if ( !user ) { throw new Error( 'No user to get permissions for.' ); }
     if ( !guild ) { throw new Error( 'No guild to get user permissions for.' ); }
+    const users = client.users.cache;
+    const members = guild.members.cache;
 
-    const member = guild.members.cache.get( user.id );
-    if ( await userConfig.countDocuments( { _id: user.id } ) === 0 ) { await createNewUser( user ); }
-    const currUser = await userConfig.findOne( { _id: user.id } );
-    const storedUserGuilds = [];
-    currUser.Guilds.forEach( ( entry, i ) => { storedUserGuilds.push( entry._id ); } );
-    if ( storedUserGuilds.indexOf( guild.id ) === -1 ) { await addUserGuild( user.id, guild ); }
+    const results = { errors: { hasNoMember: false, hasNoPerms: false } };
+    const member = members.get( user.id );
+    const dbHasMember = ( await userConfig.countDocuments( { _id: user.id } ) != 0 ? true : false );
+    if ( member && !dbHasMember ) { await createNewUser( user ); }
+    if ( member ) {
+      const currUser = await userConfig.findOne( { _id: user.id } );
+      const storedUserGuilds = [];
+      currUser.Guilds.forEach( ( entry, i ) => { storedUserGuilds.push( entry._id ); } );
+      if ( storedUserGuilds.indexOf( guild.id ) === -1 ) { await addUserGuild( user.id, guild ); }
+    }
+    else {
+      results.errors.hasNoMember = true;
+      results.errors.noMember = {
+        console: 'Unable to get member ' + user.displayName + ' (🆔:' + user.id + ') from guild ' + guild.name + ' (🆔:' + guild.id + ').',
+        message: 'Unable to get member <@' + user.id + '> (' + user.displayName + ') from [**`' + guild.name + '`**](https://discord.com/channels/' + guild.id + ').',
+        status: true
+      };
+    }
 
     const botConfig = await getBotConfig();
-    const clientID = ( botConfig.ClientID || config.clientId || client.id );
-    const botUsers = client.users.cache;
-    const botOwner = botUsers.get( botConfig.Owner );
-    const isBotOwner = ( user.id === botOwner.id ? true : false );
+    results.clientId = ( botConfig.ClientID || config.clientId || client.id );
+    results.botOwner = users.get( botConfig.Owner );
+    results.isBotOwner = ( user.id === results.botOwner.id ? true : false );
     const globalBlacklist = ( botConfig.Blacklist || [] );
-    const isGlobalBlacklisted = ( globalBlacklist.indexOf( user.id ) != -1 ? true : false );
+    results.isGlobalBlacklisted = ( globalBlacklist.indexOf( user.id ) != -1 ? true : false );
     const globalWhitelist = ( botConfig.Whitelist || [] );
-    const isGlobalWhitelisted = ( globalWhitelist.indexOf( user.id ) != -1 ? true : false );
+    results.isGlobalWhitelisted = ( globalWhitelist.indexOf( user.id ) != -1 ? true : false );
     const botMods = ( botConfig.Mods || [] );
-    const isBotMod = ( ( isBotOwner || botMods.indexOf( user.id ) != -1 ) ? true : false );
-    const globalPrefix = ( botConfig.Prefix || config.prefix || '!' );
+    results.isBotMod = ( ( results.isBotOwner || botMods.indexOf( user.id ) != -1 ) ? true : false );
+    results.globalPrefix = ( botConfig.Prefix || config.prefix || '!' );
 
     const guildConfig = await getGuildConfig( guild );
-    const isDevGuild = ( guild.id === botConfig.DevGuild ? true : false );
-    const objGuildMembers = guild.members.cache;
-    const guildOwner = objGuildMembers.get( guild.ownerId );
-    const isGuildOwner = ( user.id === guildOwner.id ? true : false );
-    const guildAllowsPremium = guildConfig.Premium;
-    const roleServerBooster = ( guild.roles.premiumSubscriberRole || null );
-    const isServerBooster = ( !roleServerBooster ? false : ( roleServerBooster.members.get( user.id ) ? true : false ) );
-    const arrAuthorPermissions = ( objGuildMembers.get( user.id ).permissions.toArray() || [] );
+    results.isDevGuild = ( guild.id === botConfig.DevGuild ? true : false );
+    results.guildOwner = members.get( guild.ownerId );
+    results.isGuildOwner = ( user.id === results.guildOwner.id ? true : false );
+    results.guildAllowsPremium = guildConfig.Premium;
+    results.roleServerBooster = ( guild.roles.premiumSubscriberRole || null );
+    results.isServerBooster = ( !results.roleServerBooster ? false : ( results.roleServerBooster.members.get( user.id ) ? true : false ) );
+    const arrAuthorPermissions = ( member?.permissions.toArray() || [] );
+    if ( !arrAuthorPermissions.length ) {
+      results.errors.hasNoPerms = true;
+      results.errors.noPerms = {
+        console: 'Member ' + user.displayName + ' (🆔:' + user.id + ') has no permissions in ' + guild.name + ' (🆔:' + guild.id + ').',
+        message: 'Member <@' + user.id + '> (' + user.tag + ') has no permissions in [**`' + guild.name + '`**](https://discord.com/channels/' + guild.id + ').',
+        status: true
+      };
+    }
 
-    const hasAdministrator = ( ( isBotMod || isGuildOwner || arrAuthorPermissions.indexOf( 'Administrator' ) !== -1 ) ? true : false );
-    const checkPermission = ( permission ) => { return ( ( hasAdministrator || arrAuthorPermissions.indexOf( permission ) !== -1 ) ? true : false ); };
+    results.hasAdministrator = ( ( results.isBotMod || results.isGuildOwner || arrAuthorPermissions.indexOf( 'Administrator' ) !== -1 ) ? true : false );
+    results.checkPermission = ( permission ) => { return ( ( results.hasAdministrator || arrAuthorPermissions.indexOf( permission ) !== -1 ) ? true : false ); };
 
     const guildBlacklist = ( guildConfig.Blacklist ? ( guildConfig.Blacklist.Roles || [] ) : [] );
     const arrBlackMembers = ( guildConfig.Blacklist ? ( guildConfig.Blacklist.Members || [] ) : [] );
@@ -63,7 +94,7 @@ module.exports = async ( user, guild, doBlacklist = true, debug = false ) => {
       }
     }
     if ( arrBlackMembers.length > 0 ) { arrBlackGuild = arrBlackGuild.concat( arrBlackMembers ); }
-    const isGuildBlacklisted = ( arrBlackGuild.indexOf( user.id ) != -1 ? true : false );
+    results.isGuildBlacklisted = ( arrBlackGuild.indexOf( user.id ) != -1 ? true : false );
 
     const guildWhitelist = ( guildConfig.Whitelist ? ( guildConfig.Whitelist.Roles || [] ) : [] );
     const arrWhiteMembers = ( guildConfig.Whitelist ? ( guildConfig.Whitelist.Members || [] ) : [] );
@@ -75,63 +106,36 @@ module.exports = async ( user, guild, doBlacklist = true, debug = false ) => {
       }
     }
     if ( arrWhiteMembers.length > 0 ) { arrWhiteGuild = arrWhiteGuild.concat( arrWhiteMembers ); }
-    const isGuildWhitelisted = ( arrWhiteGuild.indexOf( user.id ) != -1 ? true : false );
+    results.isGuildWhitelisted = ( arrWhiteGuild.indexOf( user.id ) != -1 ? true : false );
 
-    const guildPrefix = ( guildConfig.Prefix || globalPrefix );
-    const prefix = ( guildPrefix || globalPrefix || client.prefix );
-    const isBlacklisted = ( isGlobalBlacklisted || ( isGuildBlacklisted && !( isBotMod || isGlobalWhitelisted ) ) );
-    const isWhitelisted = ( isGlobalWhitelisted || ( isGuildWhitelisted && !isGlobalBlacklisted ) );
+    results.guildPrefix = ( guildConfig.Prefix || results.globalPrefix );
+    results.prefix = ( results.guildPrefix || results.globalPrefix || client.prefix );
+    results.isBlacklisted = ( results.isGlobalBlacklisted || ( results.isGuildBlacklisted && !( results.isBotMod || results.isGlobalWhitelisted ) ) );
+    results.isWhitelisted = ( results.isGlobalWhitelisted || ( results.isGuildWhitelisted && !results.isGlobalBlacklisted ) );
 
-    const results = {
-      clientId: clientID,
-      globalPrefix: globalPrefix,
-      guildPrefix: guildPrefix,
-      prefix: prefix,
-      botOwner: botOwner,
-      guildOwner: guildOwner,
-      isDevGuild: isDevGuild,
-      isBotOwner: isBotOwner,
-      isBotMod: isBotMod,
-      isGuildOwner: isGuildOwner,
-      hasAdministrator: hasAdministrator,
-      checkPermission: checkPermission,
-      guildAllowsPremium: guildAllowsPremium,
-      roleServerBooster: roleServerBooster,
-      isServerBooster: isServerBooster,
-      isGuildBlacklisted: isGuildBlacklisted,
-      isGlobalBlacklisted: isGlobalBlacklisted,
-      isBlacklisted: isBlacklisted,
-      isGuildWhitelisted: isGuildWhitelisted,
-      isGlobalWhitelisted: isGlobalWhitelisted,
-      isWhitelisted: isWhitelisted,
-      content: false
-    }
+    results.content = false;
 
     if ( debug ) {
       let resultKeys = Object.keys( results );
-      let debugResults = {};
-      for ( const key of resultKeys ) {
-        if ( typeof( results[ key ] ) != 'object' ) { debugResults[ key ] = results[ key ]; }
-        else {
-          let resultObj = results[ key ];
-          let objType = ( resultObj ? 'object-' + resultObj.constructor.name : typeof( results[ key ] ) );
-          let objId = ( resultObj ? resultObj.id : 'no.id' );
-          let objName = ( resultObj ? ( resultObj.displayName || resultObj.globalName || resultObj.name ) : 'no.name' );
-          debugResults[ key ] = '{ ' + objType + ': { id: ' + objId + ', name: ' + objName + ' } }';
-        }
-      }
-      console.log( 'getPerms is returning: %o', debugResults );
+      new Promise( async ( resolve ) => {
+        let debugResults = {};
+        for ( const key of resultKeys ) { debugResults[ key ] = await getDebugString( results[ key ] ); }
+        resolve( debugResults );
+      } )
+      .then( debugResults => { console.log( 'getPerms is returning: %o', debugResults ); } );
     }
 
-    if ( doBlacklist && isBlacklisted && !isGlobalWhitelisted ) {
-      let contact = ( isGuildBlacklisted ? guildOwner.id : botOwner.id );
-      results.content = 'Oh no!  It looks like you have been blacklisted from using my commands' + ( isGuildBlacklisted ? ' in this server!' : '!' ) + '  Please contact <@' + contact + '> to resolve the situation.';
+    if ( doBlacklist && results.isBlacklisted && !results.isGlobalWhitelisted ) {
+      let contact = ( results.isGuildBlacklisted ? results.guildOwner.id : results.botOwner.id );
+      results.content = 'Oh no!  It looks like you have been blacklisted from using my commands' + ( results.isGuildBlacklisted ? ' in this server!' : '!' ) + '  Please contact <@' + contact + '> to resolve the situation.';
     }
-    else if ( doBlacklist && isBotMod && isGuildBlacklisted ) {
+    else if ( doBlacklist && results.isBotMod && results.isGuildBlacklisted ) {
       user.send( { content: 'You have been blacklisted from using commands in https://discord.com/channels/' + guild.id + '! Use `/config remove` to remove yourself from the blacklist.' } );
     }
 
     return results;
   }
-  catch ( errObject ) { console.error( 'Uncaught error in %s:\n\t%s', strScript, errObject.stack ); }
+  catch ( errObject ) {
+    console.error( 'Uncaught error in %s:\n\t%s', strScript, errObject.stack );
+  }
 };
