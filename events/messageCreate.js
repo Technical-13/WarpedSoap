@@ -21,12 +21,12 @@ const getDebugString = ( thing ) => {
 client.on( 'messageCreate', async ( message ) => {
   try {
     const { author, channel, content, guild, mentions } = message;
+    if ( channel.type !== 0 ) return;//Not a text channel within a guild
+    const { applicationId, authorId, webhookId } = message.toJSON();
+    if ( !applicationId && webhookId === authorId ) return;//It's a webhook
     const allowedBots = [];
     const isAllowedBot = ( allowedBots.indexOf( author.id ) != -1 ? true : false );
     if ( author.bot && !allowedBots ) return;//It's a bot that is not allowed
-    const { applicationId, authorId, webhookId } = message.toJSON();
-    if ( !applicationId && webhookId === authorId ) return;//It's a webhook
-    if ( channel.type !== 0 ) return;//Not a text channel within a guild
     const { clientId, botOwner, isDevGuild, prefix, isBotOwner, isBotMod, isGlobalWhitelisted, isBlacklisted, isGuildBlacklisted, errors } = await userPerms( author, guild );
     if ( errors.hasNoMember ) {
       throw new Error( errors.noMember.console + '\n\tisBot: ' + ( author.bot ? 'true' : 'false' ) + '\n\tapplicationId: ' + applicationId + '\n\twebhookId: ' + webhookId );
