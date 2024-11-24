@@ -27,16 +27,16 @@ router.get( '/callback', async ( req, res ) => {
   const { code } = req.query;
   if ( !code ) { return res.status( 400 ).json( { error: 'Authentication "code" not found in URL parameters.' } ); }
 /* TRON */console.log( 'new URLSearchParams( {} ).toString(): %o', endpoint + '/oauth2/token?' + new URLSearchParams( { client_id: clientID, client_secret: CLIENT_SECRET, code, grant_type: 'authorization_code', redirect_uri: REDIRECT_URI } ).toString() );/* TROFF */
-  const oauthRes = await fetch( endpoint + '/oauth2/token', {
+  const oauthRes = await fetch( 'https://discord.com/api/oauth2/token', {
     method: 'POST',
+    headers: { 'Content-Type': 'application/x-www-form-urlencoded' },
     body: new URLSearchParams( {
       client_id: clientID,
       client_secret: CLIENT_SECRET,
       code,
       grant_type: 'authorization_code',
       redirect_uri: REDIRECT_URI
-    } ).toString(),
-    headers: { 'Content-Type': 'application/x-www-form-urlencoded' }
+    } ).toString()
   } );
 
   if ( !oauthRes.ok ) {
