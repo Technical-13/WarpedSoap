@@ -13,6 +13,14 @@ module.exports = async ( user ) => {
     if ( await userConfig.countDocuments( { _id: user.id } ) === 0 ) {
       const newBotUser = {
         _id: user.id,
+        Auths: {
+          Discord: {}
+        },
+        Avatar: {
+          hash: user.avatar,
+          placholder: user.defaultAvatarURL,
+          url: user.avatarURL
+        },
         Bot: user.bot,
         Guilds: [],
         Guildless: null,

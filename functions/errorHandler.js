@@ -13,7 +13,7 @@ const getDebugString = ( thing ) => {
     let objType = ( thing ? 'object-' + thing.constructor.name : typeof( thing ) );
     let objId = ( thing ? thing.id : 'no.id' );
     let objName = ( thing ? ( thing.displayName || thing.globalName || thing.name ) : 'no.name' );
-    return '{ ' + objType + ': { id: ' + objId + ', name: ' + objName + ' } }';
+    return '{ ' + objType + ': { id: ' + objId + ', name: ' + objName + ', keys: ' + Object.keys( thing ) + ' } }';
   }
 };
 

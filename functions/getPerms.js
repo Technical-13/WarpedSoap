@@ -15,7 +15,7 @@ const getDebugString = ( thing ) => {
     let objType = ( thing ? 'object-' + thing.constructor.name : typeof( thing ) );
     let objId = ( thing ? thing.id : 'no.id' );
     let objName = ( thing ? ( thing.displayName || thing.globalName || thing.name ) : 'no.name' );
-    return '{ ' + objType + ': { id: ' + objId + ', name: ' + objName + ' } }';
+    return '{ ' + objType + ': { id: ' + objId + ', name: ' + objName + ', keys: ' + Object.keys( thing ) + ' } }';
   }
 };
 const strScript = chalk.hex( '#FFA500' ).bold( './functions/getPerms.js' );
@@ -47,7 +47,7 @@ module.exports = async ( user, guild, doBlacklist = true, debug = false ) => {
       results.errors.hasNoMember = true;
       results.errors.noMember = {
         console: 'Unable to get member ' + user.displayName + ' (🆔:' + user.id + ') from guild ' + guild.name + ' (🆔:' + guild.id + ').',
-        message: 'Unable to get member <@' + user.id + '> (' + user.displayName + ') from [**`' + guild.name + '`**](https://discord.com/channels/' + guild.id + ').',
+        content: 'Unable to get member <@' + user.id + '> (' + user.displayName + ') from [**`' + guild.name + '`**](https://discord.com/channels/' + guild.id + ').',
         status: true
       };
     }
@@ -76,7 +76,7 @@ module.exports = async ( user, guild, doBlacklist = true, debug = false ) => {
       results.errors.hasNoPerms = true;
       results.errors.noPerms = {
         console: 'Member ' + user.displayName + ' (🆔:' + user.id + ') has no permissions in ' + guild.name + ' (🆔:' + guild.id + ').',
-        message: 'Member <@' + user.id + '> (' + user.tag + ') has no permissions in [**`' + guild.name + '`**](https://discord.com/channels/' + guild.id + ').',
+        content: 'Member <@' + user.id + '> (' + user.tag + ') has no permissions in [**`' + guild.name + '`**](https://discord.com/channels/' + guild.id + ').',
         status: true
       };
     }

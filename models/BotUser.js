@@ -2,6 +2,20 @@ const { model, Schema } = require( 'mongoose' );
 
 let userSchema = new Schema( {
   _id: String,
+  Auths: {
+    Discord: {
+      accessToken: String,
+      expiresIn: Number,
+      refreshToken: String,
+      tokenType: String,
+      scopes: [ String ]
+    }
+  },
+  Avatar: {
+    hash: String,
+    placholder: String,
+    url: String
+  },
   Bot: Boolean,
   Guilds: [ {
     _id: String,
@@ -10,7 +24,7 @@ let userSchema = new Schema( {
       ByName: String,
       Duration: String,
       StartedAt: Date,
-      Type: String
+      Type: { type: String }
     } ],
     Expires: Date,
     GuildName: String,
@@ -21,7 +35,7 @@ let userSchema = new Schema( {
   Guildless: Date,
   Score: Number,
   UserName: String,
-  Version: Number//,WikiAuthentication: { String }
+  Version: Number
 }, { timestamps: true } );
 
 module.exports = model( 'BotUser', userSchema );
