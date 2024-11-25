@@ -12,11 +12,8 @@ client.on( 'messageUpdate', async ( oldMessage, newMessage ) => {
     const msgAuthor = await guild.members.cache.get( author.id );
 
     if ( newMessage.embeds.length >= 1 ) {
-      const arrJunkEmbedTitles = [
-        'Geocaching: Join the world\'s largest treasure hunt.',
-        'Get the free Official Geocaching app and join the world\'s largest t...'
-      ];
-      const arrJunkEmbedURLs = [ ( new RegExp( 'https?://(www\.)?ddowiki.com/(.*)', 'i' ) ) ];
+      const arrJunkEmbedTitles = [];// Must be ( new RegExp() )
+      const arrJunkEmbedURLs = [];// Must be ( new RegExp() )
       var strLastFoundJunk = '';
       const hasJunkEmbed = ( newMessage.embeds.find( embed => {
         for ( const url of arrJunkEmbedURLs ) {

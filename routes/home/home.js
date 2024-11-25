@@ -14,9 +14,7 @@ router.get( '/', async ( req, res ) => {
     'node: ' + version,
     'djs: v' + packages[ "node_modules/discord.js" ].version,
     'mongoose: v' + packages[ "node_modules/mongoose" ].version,
-    'express: v' + packages[ "node_modules/express" ].version,
-    'axios: v' + packages[ "node_modules/axios" ].version,
-    'cheerio: v' + packages[ "node_modules/cheerio" ].version
+    'express: v' + packages[ "node_modules/express" ].version
   ];
   const bot = ( ENV.BOT_USERNAME || 'Server' );
   const usedMemory = constrainedMemory() - availableMemory();
